@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Author
+from .forms import AuthorForm
 
 
 @login_required
@@ -18,15 +19,14 @@ def author_create(request):
         return render(request, "authentication/access_denied.html")
 
     if request.method == "POST":
-        name = request.POST.get("name")
-        surname = request.POST.get("surname")
-        patronymic = request.POST.get("patronymic")
-
-        if name and surname:
-            Author.create(name=name, surname=surname, patronymic=patronymic)
+        form = AuthorForm(request.POST)
+        if form.is_valid():
+            form.save()
             return redirect("author_list")
+    else:
+        form = AuthorForm()
 
-    return render(request, "author/author_create.html")
+    return render(request, "author/author_create.html", {"form": form})
 
 
 @login_required

@@ -2,54 +2,53 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .models import CustomUser
+from .forms import RegisterForm, LoginForm
 
 
 def register_user(request):
     if request.method == "POST":
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        first_name = request.POST.get("first_name")
-        last_name = request.POST.get("last_name")
-        middle_name = request.POST.get("middle_name")
-        role = int(request.POST.get("role", 0))  # 0 - user, 1 - librarian
-
-        if CustomUser.get_by_email(email) is None:
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
             user = CustomUser.create(
-                email=email,
-                password=password,
-                first_name=first_name,
-                last_name=last_name,
-                middle_name=middle_name,
+                email=data["email"],
+                password=data["password"],
+                first_name=data["first_name"],
+                last_name=data["last_name"],
+                middle_name=data["middle_name"],
             )
-            user.update(role=role)
+            if user is not None:
+                user.update(role=data["role"])
+                login(
+                    request,
+                    user,
+                    backend="django.contrib.auth.backends.ModelBackend",
+                )
+                return redirect("user_list")
+            form.add_error(None, "Не вдалося створити користувача")
+    else:
+        form = RegisterForm()
 
-            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-            return redirect("user_list")
-        else:
-            return render(
-                request,
-                "authentication/register.html",
-                {"error": "Користувач з таким email вже існує"},
-            )
-
-    return render(request, "authentication/register.html")
+    return render(request, "authentication/register.html", {"form": form})
 
 
 def login_user(request):
     if request.method == "POST":
-        email = request.POST.get("email")
-        password = request.POST.get("password")
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            user = authenticate(
+                request,
+                email=form.cleaned_data["email"],
+                password=form.cleaned_data["password"],
+            )
+            if user is not None:
+                login(request, user)
+                return redirect("user_list")
+            form.add_error(None, "Невірний email або пароль")
+    else:
+        form = LoginForm()
 
-        user = authenticate(request, email=email, password=password)
-
-        if user is not None:
-            login(request, user)
-            return redirect("user_list")
-        return render(
-            request, "authentication/login.html", {"error": "Невірний email або пароль"}
-        )
-
-    return render(request, "authentication/login.html")
+    return render(request, "authentication/login.html", {"form": form})
 
 
 @login_required
