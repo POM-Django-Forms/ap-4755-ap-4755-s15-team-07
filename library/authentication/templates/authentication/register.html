@@ -5,33 +5,34 @@
 
     <h2 class="auth-title">Реєстрація</h2>
 
-    {% if error %}
+    {% for error in form.non_field_errors %}
         <p class="error-text">{{ error }}</p>
-    {% endif %}
+    {% endfor %}
 
     <div class="auth-card">
         <form action="{% url 'register_user' %}" method="POST">
             {% csrf_token %}
 
-            <label>Email:</label>
-            <input type="email" name="email" class="form-input" required>
+            <label>{{ form.email.label }}:</label>
+            {{ form.email }}
+            {% for error in form.email.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
 
-            <label>Пароль:</label>
-            <input type="password" name="password" class="form-input" required>
+            <label>{{ form.password.label }}:</label>
+            {{ form.password }}
+            {% for error in form.password.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
 
-            <label>Ім'я:</label>
-            <input type="text" name="first_name" maxlength="20" class="form-input">
+            <label>{{ form.first_name.label }}:</label>
+            {{ form.first_name }}
 
-            <label>Прізвище:</label>
-            <input type="text" name="last_name" maxlength="20" class="form-input">
+            <label>{{ form.last_name.label }}:</label>
+            {{ form.last_name }}
 
-            <label>По батькові:</label>
-            <input type="text" name="middle_name" maxlength="20" class="form-input">
+            <label>{{ form.middle_name.label }}:</label>
+            {{ form.middle_name }}
 
-            <label><strong>Оберіть вашу роль:</strong></label><br>
+            <label><strong>{{ form.role.label }}:</strong></label><br>
             <div style="margin-top: 5px; margin-bottom: 20px;">
-                <input type="radio" name="role" value="0" checked> Звичайний користувач (Visitor)<br>
-                <input type="radio" name="role" value="1" style="margin-top: 8px;"> Бібліотекар (Admin)
+                {{ form.role }}
             </div>
 
             <button type="submit" class="btn btn-primary btn-block">Зареєструватися</button>
